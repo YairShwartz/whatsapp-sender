@@ -1,29 +1,55 @@
 
 const express = require('express');
-const { Client, MessageMedia } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+const { Client, MessageMedia, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode');
 const fileUpload = require('express-fileupload');
 const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-const client = new Client();
-client.initialize();
+const client = new Client({
+  authStrategy: new LocalAuth(),
+  puppeteer: {
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  }
+});
 
-client.on('qr', qr => {
-  console.log('📱 סרוק את הקוד הבא עם וואטסאפ:');
-  qrcode.generate(qr, { small: true });
+let isReady = false;
+let qrCodeData = null;
+
+client.on('qr', async (qr) => {
+  qrCodeData = await qrcode.toDataURL(qr);
+  console.log('📱 סרוק את הברקוד בדפדפן כדי להתחבר לוואטסאפ');
 });
 
 client.on('ready', () => {
+  isReady = true;
   console.log('✅ וואטסאפ מחובר!');
 });
 
-app.use(express.static(__dirname));
+client.initialize();
+
 app.use(fileUpload());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+  if (!isReady && qrCodeData) {
+    res.send(\`
+      <html><body style="text-align:center; font-family:Arial">
+      <h2>סרוק את הברקוד כדי להתחבר לוואטסאפ</h2>
+      <img src="\${qrCodeData}" width="300"><br><br>
+      <p>ברגע שתתחבר, תועבר אוטומטית <a href="/index-final-with-logo.html">לדף שליחת הודעות</a></p>
+      </body></html>
+    \`);
+  } else if (isReady) {
+    res.redirect('/index-final-with-logo.html');
+  } else {
+    res.send("⏳ מחכה לברקוד...");
+  }
+});
 
 app.post('/send-message', async (req, res) => {
   const { phone, message } = req.body;
@@ -33,8 +59,6 @@ app.post('/send-message', async (req, res) => {
     if (req.files && req.files.file) {
       const file = req.files.file;
       const filePath = path.join(__dirname, 'uploads', file.name);
-
-      // ודא שהתיקייה קיימת
       if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
         fs.mkdirSync(path.join(__dirname, 'uploads'));
       }
@@ -44,7 +68,6 @@ app.post('/send-message', async (req, res) => {
       const media = MessageMedia.fromFilePath(filePath);
       await client.sendMessage(chatId, media, { caption: message });
 
-      // מחק את הקובץ לאחר השליחה
       fs.unlinkSync(filePath);
     } else {
       await client.sendMessage(chatId, message);
@@ -58,5 +81,5 @@ app.post('/send-message', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`🚀 שרת פעיל ב- http://localhost:${port}`);
+  console.log(`🚀 שרת פעיל על פורט ${port}`);
 });

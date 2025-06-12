@@ -1,20 +1,16 @@
+
 {
-  "name": "whweb",
+  "name": "whatsapp-sender",
   "version": "1.0.0",
+  "description": "מערכת שליחת הודעות וואטסאפ",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "body-parser": "^2.2.0",
-    "express": "^5.1.0",
-    "express-fileupload": "^1.5.1",
-    "qrcode-terminal": "^0.12.0",
-    "whatsapp-web.js": "^1.30.0"
-  },
-  "description": ""
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "qrcode": "^1.5.1",
+    "whatsapp-web.js": "^1.23.0"
+  }
 }
