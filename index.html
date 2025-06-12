@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>מערכת שליחת וואטסאפ - פרימיום סיטי מרקט</title>
+  <link rel="icon" type="image/png" href="logoico.png" sizes="32x32">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+
+    input[type="text"], textarea, input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    #status {
+      text-align: center;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    .logo {
+      display: block;
+      margin: auto;
+      width: 120px;
+      margin-bottom: 10px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 13px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="logo.png" alt="logo" class="logo">
+    <h2>שליחת הודעה בוואטסאפ</h2>
+
+    <form id="sendForm">
+      <label>מספר טלפון לשליחה</label>
+      <input type="text" id="phone" placeholder="למשל: 0501234567">
+
+      <label>תוכן ההודעה</label>
+      <textarea id="message" rows="4" placeholder="כתוב את ההודעה כאן"></textarea>
+
+      <label>צירוף קובץ</label>
+      <input type="file" id="fileInput" accept="image/*,.pdf">
+
+      <button type="submit">שלח הודעה</button>
+    </form>
+
+    <p id="status"></p>
+  </div>
+
+  <footer>
+    © Powered by Premium City Market LTD · Yair Shwartz
+  </footer>
+
+  <script>
+    document.getElementById('sendForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const phoneInput = document.getElementById('phone').value.trim();
+      const message = document.getElementById('message').value;
+      const file = document.getElementById('fileInput').files[0];
+
+      let phone = phoneInput.replace(/^0/, '972');
+
+      const formData = new FormData();
+      formData.append('phone', phone);
+      formData.append('message', message);
+      if (file) {
+        formData.append('file', file);
+      }
+
+      const response = await fetch('/send-message', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+      document.getElementById('status').innerText = result.success ? "✅ נשלח!" : "❌ שגיאה בשליחה";
+    });
+  </script>
+</body>
+</html>
